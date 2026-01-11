@@ -62,19 +62,71 @@ cd "$REPO_ROOT/.worktrees/feature-add-user-auth"
 
 ## Phase 2: Task Execution
 
-**Goal**: Execute the task using `/task` workflow in the worktree
+**Goal**: Execute the task using Task Commander workflow in the worktree
 
 **Context**: All work happens in the worktree directory, not the main repository.
 
-タスク内容をそのまま `/task` フローに渡して実行する:
+### Step 2.1: Task Analysis
 
-1. **Task Analysis**: タスクを分析し、サブタスクに分解
-2. **Agent Selection**: 適切なエージェントを選定
-3. **Parallel Execution**: エージェントを並列実行
-4. **Result Synthesis**: 結果を統合
-5. **Verification & Delivery**: 品質確認
+1. Parse and understand the task requirements
+2. Break down into subtasks that can be delegated to specialized agents
+3. Identify dependencies between subtasks
+4. Create a todo list with TodoWrite to track progress
 
-**参照**: `/task` コマンドのフロー（Phase 1〜5）をそのまま実行すること
+### Step 2.2: Agent Selection
+
+**Use the Task tool with appropriate `subagent_type` to delegate work.**
+
+| Agent Type               | Best For                                                     |
+| ------------------------ | ------------------------------------------------------------ |
+| `Explore`                | Codebase exploration, finding files, understanding structure |
+| `Plan`                   | Designing implementation strategies, architectural decisions |
+| `frontend-developer`     | React components, UI implementation, web standards           |
+| `typescript-pro`         | TypeScript development, type system, full-stack TS           |
+| `react-specialist`       | React 18+, hooks, server components, performance             |
+| `nextjs-developer`       | Next.js 14+, App Router, server actions                      |
+| `rust-engineer`          | Systems programming, Rust, performance-critical code         |
+| `cli-developer`          | CLI tools, terminal applications                             |
+| `debugger`               | Issue diagnosis, root cause analysis                         |
+| `error-detective`        | Error pattern analysis, distributed debugging                |
+| `performance-engineer`   | Optimization, profiling, bottleneck identification           |
+| `code-reviewer`          | Code quality, security, best practices                       |
+| `refactoring-specialist` | Safe code transformation, design patterns                    |
+| `tdd-specialist`         | Test-driven development, test first approach                 |
+| `security-auditor`       | Security assessments, vulnerability detection                |
+| `accessibility-tester`   | WCAG compliance, screen reader compatibility                 |
+| `ui-designer`            | Visual design, interaction patterns                          |
+| `mobile-app-developer`   | iOS/Android, cross-platform development                      |
+| `git-workflow-manager`   | Git strategies, branching, collaboration                     |
+| `dx-optimizer`           | Build performance, developer experience                      |
+| `seo-specialist`         | Technical SEO, search optimization                           |
+| `general-purpose`        | Complex multi-step tasks, research                           |
+| `Bash`                   | Shell commands, git operations                               |
+
+### Step 2.3: Parallel Execution
+
+**CRITICAL**: Launch multiple agents simultaneously by sending a SINGLE message with MULTIPLE Task tool calls.
+
+```
+Independent Group A: Launch agents A1, A2, A3 in parallel
+    ↓ (wait for all to complete)
+Dependent Group B: Launch agents B1, B2 that need A's results
+    ↓ (wait for all to complete)
+Final Group C: Launch final agents with all context
+```
+
+### Step 2.4: Result Synthesis
+
+1. Collect outputs from all completed agents
+2. Resolve any conflicts or inconsistencies
+3. Identify gaps or areas needing additional work
+4. Create unified deliverable
+
+### Step 2.5: Verification
+
+1. Review overall completion against original task
+2. Run any necessary validation (tests, builds, etc.)
+3. Fix any issues before proceeding to PR creation
 
 ---
 
