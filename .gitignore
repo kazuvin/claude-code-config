@@ -1,0 +1,31 @@
+# History and session data
+history.jsonl
+stats-cache.json
+*.cache.json
+
+# Cache directories
+cache/
+debug/
+todos/
+session-env/
+shell-snapshots/
+file-history/
+plans/
+downloads/
+.claude/
+
+# Plugin cache (settings are kept)
+plugins/cache/
+plugins/marketplaces/
+plugins/install-counts-cache.json
+
+# Project-specific (path dependent)
+projects/
+plugins/installed_plugins.json
+plugins/known_marketplaces.json
+
+# Statsig cache
+statsig/
+
+# OS files
+.DS_Store
