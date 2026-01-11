@@ -27,22 +27,23 @@ if [ -n "$TRANSCRIPT_PATH" ] && [ -f "$TRANSCRIPT_PATH" ]; then
   # 最初のユーザーメッセージ（タスク内容）を取得
   # type が "user" のレコードから message.content を抽出
   # content は文字列または配列の場合があるため両方に対応
-  TASK_CONTENT=$(head -n 20 "$TRANSCRIPT_PATH" | jq -r '
+  TASK_CONTENT=$(head -n 50 "$TRANSCRIPT_PATH" | jq -r '
     select(.type == "user") |
     .message.content |
     if type == "string" then .
     elif type == "array" then (.[] | select(.type == "text") | .text)
     else empty end
-  ' 2>/dev/null | head -n 1 | head -c 100)
+  ' 2>/dev/null | head -n 1 | head -c 200)
   debug_log "Raw TASK_CONTENT: $TASK_CONTENT"
 
   if [ -n "$TASK_CONTENT" ]; then
-    # 改行を空白に置換し、長すぎる場合は省略
+    # 改行を空白に置換
     TASK_CONTENT=$(echo "$TASK_CONTENT" | tr '\n' ' ' | sed 's/  */ /g')
-    if [ ${#TASK_CONTENT} -gt 80 ]; then
-      TASK_CONTENT="${TASK_CONTENT:0:80}..."
+    # 音声用に短く（50文字程度）
+    if [ ${#TASK_CONTENT} -gt 50 ]; then
+      TASK_CONTENT="${TASK_CONTENT:0:50}"
     fi
-    MESSAGE="完了: ${TASK_CONTENT}"
+    MESSAGE="${TASK_CONTENT}、が完了しました"
     debug_log "Final MESSAGE: $MESSAGE"
   else
     debug_log "TASK_CONTENT is empty, using default message"
