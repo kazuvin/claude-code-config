@@ -16,10 +16,13 @@ git clone <repository-url> ~/.claude
 # 3. プラグインを再インストール
 # Step 1: マーケットプレイスを登録
 /plugin marketplace add anthropics/skills
+/plugin marketplace add anthropics/claude-plugins-official
 
 # Step 2: プラグインをインストール（デフォルトはuser scope）
 /plugin install example-skills@anthropic-agent-skills
 /plugin install document-skills@anthropic-agent-skills
+/plugin install frontend-design@claude-plugins-official
+/plugin install github@claude-plugins-official
 ```
 
 ### 既存環境への適用
@@ -38,10 +41,13 @@ git checkout origin/main -- settings.json .gitignore
 # 3. プラグインを再インストール（必要に応じて）
 # Step 1: マーケットプレイスを登録
 /plugin marketplace add anthropics/skills
+/plugin marketplace add anthropics/claude-plugins-official
 
 # Step 2: プラグインをインストール（デフォルトはuser scope）
 /plugin install example-skills@anthropic-agent-skills
 /plugin install document-skills@anthropic-agent-skills
+/plugin install frontend-design@claude-plugins-official
+/plugin install github@claude-plugins-official
 ```
 
 ## 管理対象ファイル
@@ -67,6 +73,8 @@ git checkout origin/main -- settings.json .gitignore
 
 - `example-skills@anthropic-agent-skills`
 - `document-skills@anthropic-agent-skills`
+- `frontend-design@claude-plugins-official`
+- `github@claude-plugins-official`
 
 ## 設定変更時
 
