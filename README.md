@@ -69,6 +69,38 @@ git checkout origin/main -- settings.json .gitignore
 
 - 現在の Git ブランチを表示
 
+### Permissions（自動許可設定）
+
+`/task`, `/task-pr`, `/issue-pr`, `/create-pr` などのコマンドをスムーズに実行するため、安全な操作は自動許可されています。
+
+#### 自動許可される操作（allow）
+
+| カテゴリ | 操作 |
+|---------|------|
+| **ファイル操作** | Read, Edit, Write, Glob, Grep, LS |
+| **タスク管理** | Task, TodoWrite |
+| **Web** | WebFetch, WebSearch |
+| **Git（読み取り）** | status, diff, log, branch, fetch, show, rev-parse, remote |
+| **Git（ローカル変更）** | add, commit, checkout, stash, worktree |
+| **GitHub CLI** | gh pr, gh issue, gh api |
+| **開発ツール** | npm/pnpm/yarn run/test, npx, node, python, cargo, go, make |
+| **ファイルシステム** | mkdir, ls, cat, head, tail, wc, pwd, which, echo |
+
+#### 拒否される操作（deny）
+
+| カテゴリ | 操作 |
+|---------|------|
+| **機密ファイル** | .env, .env.*, secrets/, *.pem, credentials*, .aws/, .ssh/ |
+| **危険なコマンド** | rm -rf, sudo, chmod 777, > /dev |
+| **危険なGit操作** | git push --force/-f, git reset --hard |
+
+#### 確認が求められる操作
+
+`allow`/`deny` に含まれない操作は実行前に確認が表示されます。例：
+- `git push`（通常のプッシュ）
+- `npm install`
+- その他の未定義コマンド
+
 ### Enabled Plugins
 
 - `example-skills@anthropic-agent-skills`
