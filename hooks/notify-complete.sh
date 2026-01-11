@@ -1,6 +1,6 @@
 #!/bin/bash
 # Claude Code Stop hook - タスク完了通知スクリプト
-# 完了したタスクの内容を含めて macOS 通知を表示
+# 完了したタスクの内容を音声で通知し、効果音を再生
 
 # デバッグログ関数
 # 使用方法: DEBUG=1 で有効化
@@ -51,7 +51,9 @@ else
   debug_log "Transcript file not found or path is empty"
 fi
 
-# macOS 通知を送信
-debug_log "Sending notification..."
-osascript -e "display notification \"$MESSAGE\" with title \"Claude Code\" sound name \"Glass\""
-debug_log "Notification sent (exit code: $?)"
+# 音声で通知し、効果音を再生
+debug_log "Speaking notification..."
+say "$MESSAGE"
+debug_log "Speech completed (exit code: $?)"
+afplay /System/Library/Sounds/Purr.aiff
+debug_log "Sound played"
