@@ -43,6 +43,7 @@ claude /plugins install frontend-design
 | ファイル | 説明 |
 |---------|------|
 | `settings.json` | hooks, enabledPlugins, statusLine などの設定 |
+| `hooks/notify-complete.sh` | タスク完了時の通知スクリプト |
 | `.gitignore` | Git除外設定 |
 | `README.md` | このファイル |
 
@@ -50,7 +51,7 @@ claude /plugins install frontend-design
 
 ### Hooks
 
-- **Stop**: タスク完了時に macOS 通知を表示
+- **Stop**: タスク完了時に macOS 通知を表示（完了したタスクの内容を含む）
 
 ### Status Line
 
