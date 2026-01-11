@@ -1,6 +1,6 @@
 #!/bin/bash
 # Claude Code Stop hook - タスク完了通知スクリプト
-# 完了したタスクの内容を含めて macOS 通知を表示
+# 完了したタスクの内容を音声で通知し、効果音を再生
 
 # デバッグログ関数
 # 使用方法: DEBUG=1 で有効化
@@ -27,22 +27,23 @@ if [ -n "$TRANSCRIPT_PATH" ] && [ -f "$TRANSCRIPT_PATH" ]; then
   # 最初のユーザーメッセージ（タスク内容）を取得
   # type が "user" のレコードから message.content を抽出
   # content は文字列または配列の場合があるため両方に対応
-  TASK_CONTENT=$(head -n 20 "$TRANSCRIPT_PATH" | jq -r '
+  TASK_CONTENT=$(head -n 50 "$TRANSCRIPT_PATH" | jq -r '
     select(.type == "user") |
     .message.content |
     if type == "string" then .
     elif type == "array" then (.[] | select(.type == "text") | .text)
     else empty end
-  ' 2>/dev/null | head -n 1 | head -c 100)
+  ' 2>/dev/null | head -n 1 | head -c 200)
   debug_log "Raw TASK_CONTENT: $TASK_CONTENT"
 
   if [ -n "$TASK_CONTENT" ]; then
-    # 改行を空白に置換し、長すぎる場合は省略
+    # 改行を空白に置換
     TASK_CONTENT=$(echo "$TASK_CONTENT" | tr '\n' ' ' | sed 's/  */ /g')
-    if [ ${#TASK_CONTENT} -gt 80 ]; then
-      TASK_CONTENT="${TASK_CONTENT:0:80}..."
+    # 音声用に短く（50文字程度）
+    if [ ${#TASK_CONTENT} -gt 50 ]; then
+      TASK_CONTENT="${TASK_CONTENT:0:50}"
     fi
-    MESSAGE="完了: ${TASK_CONTENT}"
+    MESSAGE="${TASK_CONTENT}、が完了しました"
     debug_log "Final MESSAGE: $MESSAGE"
   else
     debug_log "TASK_CONTENT is empty, using default message"
@@ -51,7 +52,9 @@ else
   debug_log "Transcript file not found or path is empty"
 fi
 
-# macOS 通知を送信
-debug_log "Sending notification..."
-osascript -e "display notification \"$MESSAGE\" with title \"Claude Code\" sound name \"Glass\""
-debug_log "Notification sent (exit code: $?)"
+# 音声で通知し、効果音を再生
+debug_log "Speaking notification..."
+say "$MESSAGE"
+debug_log "Speech completed (exit code: $?)"
+afplay /System/Library/Sounds/Purr.aiff
+debug_log "Sound played"
