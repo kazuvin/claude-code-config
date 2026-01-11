@@ -7,6 +7,8 @@ argument-hint: <issue number or URL>
 
 GitHub issueからタスク内容を取得し、`/task-pr` のワークフローを実行してPRを作成します。
 
+**並列実行対応**: git worktree を使用して独立した作業環境で実行するため、複数のissueを同時に処理可能です。
+
 ---
 
 ## Input
@@ -48,46 +50,133 @@ $ARGUMENTS
 
 ---
 
-## Phase 2: Task-PR Execution
+## Phase 2: Worktree Setup
 
-**Goal**: `/task-pr` フローを実行してタスクを完了しPRを作成する
+**Goal**: Create an isolated working environment using git worktree
 
-issueから取得した内容をタスクとして `/task-pr` フローを実行する。
+**Why worktree?**:
 
-**issue-pr 固有の設定**:
+- 複数issueを並列処理する際、各タスクが独立したディレクトリで作業可能
+- mainブランチや他のタスクの作業に影響を与えない
+- 作業完了後にクリーンアップが容易
 
-1. **ブランチ名**: issueのラベルに基づいて決定
+**Branch naming based on issue labels**:
 
-   | ラベル                   | ブランチ形式                              |
-   | ------------------------ | ----------------------------------------- |
-   | `bug`, `fix`             | `fix/issue-<number>-<short-desc>`         |
-   | `feature`, `enhancement` | `feature/issue-<number>-<short-desc>`     |
-   | `refactor`               | `refactor/issue-<number>-<short-desc>`    |
-   | `docs`, `documentation`  | `docs/issue-<number>-<short-desc>`        |
-   | その他                   | `feature/issue-<number>-<short-desc>`     |
+| ラベル                   | ブランチ形式                              |
+| ------------------------ | ----------------------------------------- |
+| `bug`, `fix`             | `fix/issue-<number>-<short-desc>`         |
+| `feature`, `enhancement` | `feature/issue-<number>-<short-desc>`     |
+| `refactor`               | `refactor/issue-<number>-<short-desc>`    |
+| `docs`, `documentation`  | `docs/issue-<number>-<short-desc>`        |
+| その他                   | `feature/issue-<number>-<short-desc>`     |
 
-2. **PR作成時**: `/create-pr` に `--issue <number>` オプションを渡す
-   - これにより PR 本文に `Closes #<issue-number>` が追加される
-   - PRタイトルにもissue番号を含める
+**Worktree setup**:
 
-**参照**: `/task-pr` コマンドのフロー（Phase 1〜4）をそのまま実行すること
+```bash
+# Get repository root
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+# Create worktree directory if not exists
+mkdir -p "$REPO_ROOT/.worktrees"
+
+# Create worktree with new branch (example for issue #42)
+git fetch origin
+git worktree add -b feature/issue-42-dark-mode \
+  "$REPO_ROOT/.worktrees/feature-issue-42-dark-mode" origin/main
+
+# Change to worktree directory
+cd "$REPO_ROOT/.worktrees/feature-issue-42-dark-mode"
+```
+
+**Important**: Add `.worktrees/` to `.gitignore` if not already present.
 
 ---
 
-## Phase 3: Final Summary
+## Phase 3: Task-PR Execution
 
-**Goal**: 完了報告
+**Goal**: Execute `/task-pr` workflow in the worktree
+
+issueから取得した内容をタスクとして実行する:
+
+1. **Task Analysis**: タスクを分析し、サブタスクに分解
+2. **Agent Selection**: 適切なエージェントを選定
+3. **Parallel Execution**: エージェントを並列実行
+4. **Result Synthesis**: 結果を統合
+5. **Verification & Delivery**: 品質確認
+
+**参照**: `/task` コマンドのフロー（Phase 1〜5）をそのまま実行すること
+
+---
+
+## Phase 4: PR Creation
+
+**Goal**: Create PR with issue linkage
+
+PR作成時の特別な設定:
+
+1. **PR Title**: issue番号を含める
+   - 例: `feat: Add dark mode support (#42)`
+
+2. **PR Body**: `Closes #<issue-number>` を追加
+   - これによりPRマージ時にissueが自動クローズされる
+
+3. `/create-pr` フローを実行
+
+---
+
+## Phase 5: Cleanup & Summary
+
+**Goal**: Clean up worktree and report completion
+
+**Actions**:
+
+1. Return to original repository directory
+2. Remove worktree (optional - can keep for reference)
+
+```bash
+# Return to original directory
+cd "$REPO_ROOT"
+
+# Remove worktree (optional)
+git worktree remove "$REPO_ROOT/.worktrees/feature-issue-42-dark-mode"
+
+# Or list worktrees to verify
+git worktree list
+```
 
 **Deliverables**:
 
 1. Issue番号と内容
-2. 作成したブランチ名
-3. 使用したエージェント
-4. **PR URL**（issueとリンク済み）
+2. Worktree location used
+3. 作成したブランチ名
+4. 使用したエージェント
+5. **PR URL**（issueとリンク済み）
 
 ---
 
-## Example Execution
+## Parallel Execution Example
+
+When processing multiple issues simultaneously:
+
+```
+Terminal 1: /issue-pr 42
+  → Creates .worktrees/feature-issue-42-dark-mode
+  → Works independently
+
+Terminal 2: /issue-pr 43
+  → Creates .worktrees/fix-issue-43-login-bug
+  → Works independently
+
+Terminal 3: /issue-pr 44
+  → Creates .worktrees/feature-issue-44-user-profile
+  → Works independently
+```
+
+Each issue is processed in isolation, no conflicts.
+
+---
+
+## Example Full Execution
 
 **Input**: `/issue-pr 42`
 
@@ -98,7 +187,14 @@ issueから取得した内容をタスクとして `/task-pr` フローを実行
    Labels: enhancement, ui
    ```
 
-2. **タスク構築**:
+2. **Worktree Setup**:
+   ```bash
+   git worktree add -b feature/issue-42-dark-mode \
+     "$REPO_ROOT/.worktrees/feature-issue-42-dark-mode" origin/main
+   cd "$REPO_ROOT/.worktrees/feature-issue-42-dark-mode"
+   ```
+
+3. **タスク構築**:
    ```
    Issue #42: Add dark mode support
 
@@ -111,15 +207,17 @@ issueから取得した内容をタスクとして `/task-pr` フローを実行
    Labels: enhancement, ui
    ```
 
-3. **task-pr 実行**: ブランチ `feature/issue-42-dark-mode` を作成し、タスク実行
+4. **Task実行**: `/task` フローを実行
 
-4. **PR作成**: `--issue 42` オプション付きで `/create-pr` 実行
+5. **PR作成**:
    ```
    Title: feat: Add dark mode support (#42)
    Body: ... Closes #42 ...
    ```
 
-5. **完了報告**: PR URL を提供
+6. **Cleanup**: worktreeを削除（オプション）
+
+7. **完了報告**: PR URL を提供
 
 ---
 
