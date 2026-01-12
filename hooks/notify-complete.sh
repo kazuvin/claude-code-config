@@ -55,8 +55,14 @@ fi
 # Ghostty タブに 🔔 を表示 (OSC 0)
 # タスク内容を短くしてタブタイトルに含める
 TAB_TASK="${TASK_CONTENT:0:30}"
-printf '\033]0;🔔 完了 - %s\007' "$TAB_TASK" > /dev/tty 2>/dev/null || true
-debug_log "Tab title updated: 🔔 完了 - $TAB_TASK"
+TAB_TITLE="🔔 完了 - $TAB_TASK"
+
+# 複数の方法でタブタイトルを設定（確実性を上げる）
+{
+  printf '\033]0;%s\007' "$TAB_TITLE" > /dev/tty
+  printf '\033]0;%s\007' "$TAB_TITLE"
+} 2>/dev/null || true
+debug_log "Tab title updated: $TAB_TITLE"
 
 # macOS デスクトップ通知 (OSC 9)
 printf '\033]9;🔔 %s\007' "$MESSAGE" > /dev/tty 2>/dev/null || true

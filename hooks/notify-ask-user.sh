@@ -37,8 +37,14 @@ fi
 # Ghostty タブに 🔔 を表示 (OSC 0)
 # 質問内容を短くしてタブタイトルに含める
 TAB_QUESTION="${QUESTION:0:30}"
-printf '\033]0;🔔 確認待ち - %s\007' "$TAB_QUESTION" > /dev/tty 2>/dev/null || true
-debug_log "Tab title updated: 🔔 確認待ち - $TAB_QUESTION"
+TAB_TITLE="🔔 確認待ち - $TAB_QUESTION"
+
+# 複数の方法でタブタイトルを設定（確実性を上げる）
+{
+  printf '\033]0;%s\007' "$TAB_TITLE" > /dev/tty
+  printf '\033]0;%s\007' "$TAB_TITLE"
+} 2>/dev/null || true
+debug_log "Tab title updated: $TAB_TITLE"
 
 # macOS デスクトップ通知 (OSC 9)
 printf '\033]9;🔔 %s\007' "$MESSAGE" > /dev/tty 2>/dev/null || true

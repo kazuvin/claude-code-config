@@ -110,6 +110,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/reset-tab-title.sh"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
