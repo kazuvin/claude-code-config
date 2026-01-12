@@ -48,6 +48,7 @@
       "Bash(pnpm format:check:*)",
       "Bash(pnpm build:*)",
       "Bash(pnpm exec:*)",
+      "Bash(pnpm tsc:*)",
       "Bash(pnpm prepare:*)",
       "Bash(yarn run:*)",
       "Bash(yarn test:*)",
@@ -61,6 +62,8 @@
       "Bash(make:*)",
       "Bash(tree:*)",
       "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(xargs:*)",
       "Bash(mkdir:*)",
       "Bash(ls:*)",
       "Bash(cat:*)",
@@ -114,7 +117,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'not a git repo'"
+    "command": "~/.claude/hooks/statusline.sh"
   },
   "enabledPlugins": {
     "example-skills@anthropic-agent-skills": true,
