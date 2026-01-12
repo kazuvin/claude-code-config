@@ -43,6 +43,7 @@
       "Bash(pnpm list:*)",
       "Bash(pnpm why:*)",
       "Bash(pnpm add:*)",
+      "Bash(pnpm remove:*)",
       "Bash(pnpm lint:*)",
       "Bash(pnpm format:*)",
       "Bash(pnpm format:check:*)",
