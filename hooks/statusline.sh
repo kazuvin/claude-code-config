@@ -1,10 +1,31 @@
 #!/bin/bash
-# Claude Code statusLine script - displays git branch and context usage
+# Claude Code statusLine script - displays git branch, model, and context usage with colors
 
 input=$(cat)
 
+# ANSI colors
+CYAN='\033[36m'
+MAGENTA='\033[35m'
+GREEN='\033[32m'
+YELLOW='\033[33m'
+RED='\033[31m'
+DIM='\033[2m'
+RESET='\033[0m'
+
 # Git branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+
+# Model info
+MODEL=$(echo "$input" | jq -r '.model // empty')
+# Shorten model name for display
+if [ -n "$MODEL" ]; then
+    case "$MODEL" in
+        *opus*) MODEL_SHORT="opus" ;;
+        *sonnet*) MODEL_SHORT="sonnet" ;;
+        *haiku*) MODEL_SHORT="haiku" ;;
+        *) MODEL_SHORT="$MODEL" ;;
+    esac
+fi
 
 # Context window info
 CONTEXT_SIZE=$(echo "$input" | jq -r '.context_window.context_window_size // empty')
@@ -12,9 +33,18 @@ USAGE=$(echo "$input" | jq '.context_window.current_usage // empty')
 
 output=""
 
-# Add branch if available
+# Add branch if available (cyan)
 if [ -n "$BRANCH" ]; then
-    output="$BRANCH"
+    output="${CYAN}${BRANCH}${RESET}"
+fi
+
+# Add model if available (magenta)
+if [ -n "$MODEL_SHORT" ]; then
+    if [ -n "$output" ]; then
+        output="$output ${DIM}|${RESET} ${MAGENTA}${MODEL_SHORT}${RESET}"
+    else
+        output="${MAGENTA}${MODEL_SHORT}${RESET}"
+    fi
 fi
 
 # Add context usage if available
@@ -27,18 +57,36 @@ if [ -n "$CONTEXT_SIZE" ] && [ "$USAGE" != "null" ] && [ -n "$USAGE" ]; then
     PERCENT_USED=$((CURRENT_TOKENS * 100 / CONTEXT_SIZE))
     REMAINING=$((CONTEXT_SIZE - CURRENT_TOKENS))
 
-    # Format remaining tokens (e.g., 180k)
+    # Format remaining tokens (e.g., 120k)
     if [ $REMAINING -ge 1000 ]; then
-        REMAINING_FORMATTED="$((REMAINING / 1000))k"
+        REMAINING_FMT="$((REMAINING / 1000))k"
     else
-        REMAINING_FORMATTED="$REMAINING"
+        REMAINING_FMT="$REMAINING"
     fi
 
-    if [ -n "$output" ]; then
-        output="$output | Context: ${PERCENT_USED}% (${REMAINING_FORMATTED} left)"
+    # Choose color based on usage
+    if [ $PERCENT_USED -lt 50 ]; then
+        BAR_COLOR="$GREEN"
+    elif [ $PERCENT_USED -lt 80 ]; then
+        BAR_COLOR="$YELLOW"
     else
-        output="Context: ${PERCENT_USED}% (${REMAINING_FORMATTED} left)"
+        BAR_COLOR="$RED"
+    fi
+
+    # Build progress bar (10 segments)
+    BAR_LENGTH=10
+    FILLED=$((PERCENT_USED * BAR_LENGTH / 100))
+    EMPTY=$((BAR_LENGTH - FILLED))
+
+    BAR=""
+    for ((i=0; i<FILLED; i++)); do BAR+="█"; done
+    for ((i=0; i<EMPTY; i++)); do BAR+="░"; done
+
+    if [ -n "$output" ]; then
+        output="$output ${DIM}|${RESET} ${BAR_COLOR}[${BAR}]${RESET} ${PERCENT_USED}% ${DIM}(${REMAINING_FMT})${RESET}"
+    else
+        output="${BAR_COLOR}[${BAR}]${RESET} ${PERCENT_USED}% ${DIM}(${REMAINING_FMT})${RESET}"
     fi
 fi
 
-echo "$output"
+echo -e "$output"
