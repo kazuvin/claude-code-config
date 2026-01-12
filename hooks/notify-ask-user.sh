@@ -34,6 +34,14 @@ else
   debug_log "QUESTION is empty, using default message"
 fi
 
+# Ghostty タブに 🔔 を表示 (OSC 0)
+printf '\033]0;🔔 確認待ち\007' > /dev/tty 2>/dev/null || true
+debug_log "Tab title updated with bell icon"
+
+# macOS デスクトップ通知 (OSC 9)
+printf '\033]9;🔔 %s\007' "$MESSAGE" > /dev/tty 2>/dev/null || true
+debug_log "Desktop notification sent via OSC 9"
+
 # 音声で通知
 debug_log "Speaking notification..."
 say "$MESSAGE"
