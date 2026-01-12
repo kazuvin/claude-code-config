@@ -73,7 +73,8 @@
       "Bash(wc:*)",
       "Bash(pwd)",
       "Bash(which:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(sed:*)"
     ],
     "deny": [
       "Read(./.env)",

@@ -17,14 +17,30 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 
 # Model info
 MODEL=$(echo "$input" | jq -r '.model // empty')
-# Shorten model name for display
+# Shorten model name and extract version for display
+MODEL_SHORT=""
 if [ -n "$MODEL" ]; then
+    # Extract model name
     case "$MODEL" in
-        *opus*) MODEL_SHORT="opus" ;;
-        *sonnet*) MODEL_SHORT="sonnet" ;;
-        *haiku*) MODEL_SHORT="haiku" ;;
-        *) MODEL_SHORT="$MODEL" ;;
+        *opus*) MODEL_NAME="opus" ;;
+        *sonnet*) MODEL_NAME="sonnet" ;;
+        *haiku*) MODEL_NAME="haiku" ;;
+        *) MODEL_NAME="$MODEL" ;;
     esac
+
+    # Extract version (e.g., claude-opus-4-5-20251101 → 4.5, claude-3-5-sonnet → 3.5)
+    if [[ "$MODEL" =~ claude-([0-9]+)-([0-9]+)- ]]; then
+        # claude-3-5-sonnet format
+        MODEL_SHORT="${MODEL_NAME} ${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+    elif [[ "$MODEL" =~ claude-[a-z]+-([0-9]+)-([0-9]+)- ]]; then
+        # claude-opus-4-5-20251101 format
+        MODEL_SHORT="${MODEL_NAME} ${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+    elif [[ "$MODEL" =~ claude-[a-z]+-([0-9]+)- ]]; then
+        # claude-sonnet-4-20250514 format
+        MODEL_SHORT="${MODEL_NAME} ${BASH_REMATCH[1]}"
+    else
+        MODEL_SHORT="$MODEL_NAME"
+    fi
 fi
 
 # Context window info
