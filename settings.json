@@ -71,7 +71,8 @@
       "Bash(wc:*)",
       "Bash(pwd)",
       "Bash(which:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(grep:*)"
     ],
     "deny": [
       "Read(./.env)",
@@ -97,6 +98,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "~/.claude/hooks/caffeinate-stop.sh"
+          },
+          {
+            "type": "command",
             "command": "~/.claude/hooks/notify-complete.sh"
           }
         ]
@@ -120,6 +125,10 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/reset-tab-title.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/caffeinate-start.sh"
           }
         ]
       }
@@ -130,8 +139,8 @@
     "command": "git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'not a git repo'"
   },
   "enabledPlugins": {
-    "example-skills@anthropic-agent-skills": true,
-    "document-skills@anthropic-agent-skills": true,
+    "example-skills@anthropic-agent-skills": false,
+    "document-skills@anthropic-agent-skills": false,
     "frontend-design@claude-plugins-official": true,
     "github@claude-plugins-official": true
   },

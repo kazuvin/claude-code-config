@@ -1,0 +1,12 @@
+ ⨯ ./src/app/globals.css
+Error evaluating Node.js code
+CssSyntaxError: tailwindcss: /Users/kazuya.miura/Develop/blog-app/src/app/globals.css:1:1: `@utility slide-in-from-left-1\/2` defines an invalid utility name. Utilities should be alphanumeric and start with a lowercase letter.
+    [at Input.error (turbopack:///[project]/node_modules/.pnpm/postcss@8.4.31/node_modules/postcss/lib/input.js:106:16)]
+    [at Root.error (turbopack:///[project]/node_modules/.pnpm/postcss@8.4.31/node_modules/postcss/lib/node.js:115:32)]                                             [at Object.Once (/Users/kazuya.miura/Develop/blog-app/node_modules/.pnpm/@tailwindcss+postcss@4.1.18/node_modules/@tailwindcss/postcss/dist/index.js:10:6911)]                                                      [at async LazyResult.runAsync (turbopack:///[project]/node_modules/.pnpm/postcss@8.4.31/node_modules/postcss/lib/lazy-result.js:261:11)]
+    [at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34)]
+    [at async run (turbopack:///[turbopack-node]/ipc/evaluate.ts:92:23)]
+
+Import trace:
+  Client Component Browser:
+    ./src/app/globals.css [Client Component Browser]
+    ./src/app/layout.tsx [Server Component]
