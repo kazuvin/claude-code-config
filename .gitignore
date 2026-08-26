@@ -1,31 +1,35 @@
-# History and session data
+# ── Runtime state (machine-local, never synced) ──────────────
 history.jsonl
 stats-cache.json
 *.cache.json
+.last-cleanup
+.last-update-result.json
+mcp-needs-auth-cache.json
 
-# Cache directories
+backups/
 cache/
+chrome/
 debug/
-todos/
-session-env/
-shell-snapshots/
-file-history/
-plans/
 downloads/
-.claude/
-
-# Plugin cache (settings are kept)
-plugins/cache/
-plugins/marketplaces/
-plugins/install-counts-cache.json
-
-# Project-specific (path dependent)
+file-history/
+paste-cache/
+plans/
 projects/
-plugins/installed_plugins.json
-plugins/known_marketplaces.json
-
-# Statsig cache
+scheduled-tasks/
+session-env/
+sessions/
+shell-snapshots/
 statsig/
+todos/
+uploads/
+.claude/
+.worktrees/
 
-# OS files
+# ── Plugins (managed by /plugin, not by this repo) ───────────
+plugins/
+
+# ── Skills installed via tooling (re-installable) ────────────
+skills/
+
+# ── OS ───────────────────────────────────────────────────────
 .DS_Store

@@ -1,80 +1,28 @@
 {
   "permissions": {
     "allow": [
-      "Read",
-      "Edit",
-      "Write",
-      "Glob",
-      "Grep",
-      "LS",
-      "Task",
-      "TodoWrite",
-      "WebFetch",
-      "WebSearch",
-      "Bash(git status:*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git branch:*)",
-      "Bash(git fetch:*)",
-      "Bash(git worktree:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git checkout:*)",
-      "Bash(git stash:*)",
-      "Bash(git rev-parse:*)",
-      "Bash(git remote:*)",
-      "Bash(git show:*)",
-      "Bash(git push:*)",
-      "Bash(git config:*)",
-      "Bash(git reset:*)",
+      "Bash(git switch:*)",
       "Bash(git restore:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git push:*)",
+      "Bash(git worktree:*)",
       "Bash(gh pr:*)",
       "Bash(gh issue:*)",
       "Bash(gh api:*)",
       "Bash(gh run:*)",
-      "Bash(npm run:*)",
-      "Bash(npm test:*)",
-      "Bash(npm install:*)",
-      "Bash(npm add:*)",
-      "Bash(pnpm run:*)",
-      "Bash(pnpm test:*)",
-      "Bash(pnpm test:run:*)",
-      "Bash(pnpm install:*)",
-      "Bash(pnpm list:*)",
-      "Bash(pnpm why:*)",
-      "Bash(pnpm add:*)",
-      "Bash(pnpm lint:*)",
-      "Bash(pnpm format:*)",
-      "Bash(pnpm format:check:*)",
-      "Bash(pnpm build:*)",
-      "Bash(pnpm build-storybook:*)",
-      "Bash(pnpm exec:*)",
-      "Bash(pnpm tsc:*)",
-      "Bash(pnpm prepare:*)",
-      "Bash(yarn run:*)",
-      "Bash(yarn test:*)",
-      "Bash(yarn install:*)",
-      "Bash(yarn add:*)",
+      "Bash(pnpm:*)",
+      "Bash(npm:*)",
       "Bash(npx:*)",
+      "Bash(yarn:*)",
       "Bash(node:*)",
-      "Bash(python:*)",
       "Bash(cargo:*)",
       "Bash(go:*)",
       "Bash(make:*)",
-      "Bash(tree:*)",
-      "Bash(find:*)",
-      "Bash(grep:*)",
-      "Bash(xargs:*)",
-      "Bash(mkdir:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(wc:*)",
-      "Bash(pwd)",
-      "Bash(which:*)",
-      "Bash(echo:*)",
-      "Bash(sed:*)"
+      "mcp__pencil"
     ],
     "deny": [
       "Read(./.env)",
@@ -91,7 +39,8 @@
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
       "Bash(git reset --hard:*)"
-    ]
+    ],
+    "defaultMode": "auto"
   },
   "hooks": {
     "Stop": [
@@ -122,10 +71,18 @@
     "command": "~/.claude/hooks/statusline.sh"
   },
   "enabledPlugins": {
-    "example-skills@anthropic-agent-skills": true,
-    "document-skills@anthropic-agent-skills": true,
     "frontend-design@claude-plugins-official": true,
-    "github@claude-plugins-official": true
+    "swift-lsp@claude-plugins-official": true
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
+  "tui": "fullscreen",
+  "theme": "dark-daltonized",
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "modelSettings": {
+    "claude-opus-5": {
+      "effortLevel": "xhigh"
+    }
+  }
 }

@@ -1,125 +1,107 @@
-# Claude Code Configuration
+# ~/.claude — Claude Code Configuration
 
-Claude Code の設定ファイルを管理するリポジトリです。
+Claude Code のユーザー設定を複数デバイス間で同期するためのリポジトリ。
 
-## セットアップ手順
+## 管理対象
 
-### 新しいデバイスでの初期設定
+| パス | 内容 |
+|---|---|
+| `settings.json` | permissions / hooks / statusLine / enabledPlugins / 個人設定 |
+| `hooks/notify-complete.sh` | Stop hook — タスク完了を音声読み上げ + 効果音 |
+| `hooks/notify-ask-user.sh` | PreToolUse:AskUserQuestion hook — 質問時に音声読み上げ |
+| `hooks/statusline.sh` | 5行ステータスライン。現在地/モデル + コンテキスト/5時間枠/週次枠のゲージ |
+| `CLAUDE.md` | 全プロジェクト共通のグローバル指示 |
+| `.gitignore` | ランタイム状態を除外 |
+
+これ以外（`projects/` `sessions/` `plugins/` `skills/` `cache/` など）はすべて
+マシンローカルなランタイム状態で、git 管理外。
+
+## セットアップ
 
 ```bash
-# 1. 既存の .claude ディレクトリをバックアップ（存在する場合）
-mv ~/.claude ~/.claude.bak
-
-# 2. リポジトリをクローン
 git clone <repository-url> ~/.claude
+```
 
-# 3. プラグインを再インストール
-# Step 1: マーケットプレイスを登録
-/plugin marketplace add anthropics/skills
+プラグインは設定ファイルに含まれないため、別途インストールする:
+
+```
 /plugin marketplace add anthropics/claude-plugins-official
-
-# Step 2: プラグインをインストール（デフォルトはuser scope）
-/plugin install example-skills@anthropic-agent-skills
-/plugin install document-skills@anthropic-agent-skills
 /plugin install frontend-design@claude-plugins-official
-/plugin install github@claude-plugins-official
+/plugin install swift-lsp@claude-plugins-official
 ```
 
-### 既存環境への適用
+既存の `~/.claude` がある場合は退避してからクローンする。
 
-```bash
-# 1. 既存設定をバックアップ
-cp ~/.claude/settings.json ~/.claude/settings.json.bak
+## Hooks
 
-# 2. リポジトリから設定を取得
-cd ~/.claude
-git init
-git remote add origin <repository-url>
-git fetch origin
-git checkout origin/main -- settings.json .gitignore
+`notify-complete.sh` / `notify-ask-user.sh` は macOS の `say` / `afplay` を使う音声通知。
+デバッグは `DEBUG=1` で `hooks/debug.log` に出力される。
 
-# 3. プラグインを再インストール（必要に応じて）
-# Step 1: マーケットプレイスを登録
-/plugin marketplace add anthropics/skills
-/plugin marketplace add anthropics/claude-plugins-official
+## Status line
 
-# Step 2: プラグインをインストール（デフォルトはuser scope）
-/plugin install example-skills@anthropic-agent-skills
-/plugin install document-skills@anthropic-agent-skills
-/plugin install frontend-design@claude-plugins-official
-/plugin install github@claude-plugins-official
+`hooks/statusline.sh` はヘッダ2行 + 予算1つにつき1行を出力する:
+
+```
+📁 ~/.claude  🌿 main +23 ~5
+🤖 Opus 5 (1M context) · high · think · 💰$7.33
+🧠 context ███▎░░░░░░░░░░░░  21%  792k left
+⏳ 5-hour  █████▌░░░░░░░░░░  35%  ↻2h25m  08/26 14:20 JST
+📅 weekly  ▊░░░░░░░░░░░░░░░   5%  ↻4d18h  08/31 06:00 JST
 ```
 
-## 管理対象ファイル
+ゲージ3行はどれも読み方が同じで、**バーと％が使った分、右の淡色が残り**。
+コンテキストは残りトークン数、上限はリセットまでの残り時間と、解除される日時。
 
-| ファイル | 説明 |
-|---------|------|
-| `settings.json` | hooks, enabledPlugins, statusLine などの設定 |
-| `hooks/notify-complete.sh` | タスク完了時の通知スクリプト |
-| `.gitignore` | Git除外設定 |
-| `README.md` | このファイル |
+- **🧠 context** — コンテキストウィンドウ
+- **⏳ 5-hour / 📅 weekly** — Claude.ai サブスクの5時間枠と週次枠
+- バーは1セルを8分割した精度なので、10%刻みで飛ばず滑らかに動く
 
-## 設定内容
+### リセット時刻
 
-### Hooks
+`resets_at`（Unix epoch）を JST に変換して表示する。タイムゾーンは
+スクリプト冒頭の `RESET_TZ` で変更できる（`%Z` から `JST` の表記も自動で追従する）。
 
-- **Stop**: タスク完了時に macOS 通知を表示（完了したタスクの内容を含む）
+`date` は macOS の BSD 形式（`-r`）を先に試し、Linux では GNU 形式（`-d @`）に
+フォールバックする。どちらも失敗はstderrにしか出さないため、`||` で値が壊れない。
 
-### Status Line
+### 配色
 
-- 現在の Git ブランチを表示
+行ごとに シアン / 青 / マゼンタ。70% で黄、90% で赤に切り替わる。
 
-### Permissions（自動許可設定）
+緑は使っていない。`dark-daltonized` テーマは色覚多様性向けであり、緑と赤・緑と黄は
+最も判別しにくい組み合わせのため。git の差分も同じ理由で `+staged` をシアン、
+`~unstaged` を黄にしている。
 
-`/task`, `/task-pr`, `/issue-pr`, `/create-pr` などのコマンドをスムーズに実行するため、安全な操作は自動許可されています。
+### レイアウトの制約
 
-#### 自動許可される操作（allow）
+**折り返しは厳禁**。一度1行に詰めた際、82桁になって80桁端末で末尾のゲージが
+分断された。ヘッダも絵文字込みで84桁に達したため2行に分けてある。現在は最長57桁。
 
-| カテゴリ | 操作 |
-|---------|------|
-| **ファイル操作** | Read, Edit, Write, Glob, Grep, LS |
-| **タスク管理** | Task, TodoWrite |
-| **Web** | WebFetch, WebSearch |
-| **Git（読み取り）** | status, diff, log, branch, fetch, show, rev-parse, remote |
-| **Git（ローカル変更）** | add, commit, checkout, stash, worktree |
-| **GitHub CLI** | gh pr, gh issue, gh api |
-| **開発ツール** | npm/pnpm/yarn run/test, npx, node, python, cargo, go, make |
-| **ファイルシステム** | mkdir, ls, cat, head, tail, wc, pwd, which, echo |
+- 絵文字は**全て East Asian Wide（2桁固定）のものだけ**を使う。`⏱`（U+23F1）は
+  幅が不定なので不可 — 混ぜるとその行のバーが1桁ずれる
+- 絵文字はパディング対象の外に置く。`printf` の `%-*s` は文字数で詰めるため、
+  幅2の文字をフィールド内に入れると桁が狂う
+- 深いパスは末尾2成分に短縮される（`…/core/src`）
 
-#### 拒否される操作（deny）
+### 実装メモ
 
-| カテゴリ | 操作 |
-|---------|------|
-| **機密ファイル** | .env, .env.*, secrets/, *.pem, credentials*, .aws/, .ssh/ |
-| **危険なコマンド** | rm -rf, sudo, chmod 777, > /dev |
-| **危険なGit操作** | git push --force/-f, git reset --hard |
+- 入力フィールドは[公式の statusLine スキーマ](https://code.claude.com/docs/en/statusline)に準拠
+- `rate_limits` は Pro/Max のみ、かつセッション初回のAPI応答後にしか存在しない。
+  無い枠は行ごと省略される（API キー利用時は3行になる）
+- 依存は `jq` のみ。git 情報は `session_id` をキーに5秒キャッシュ（公式の推奨手順）
+- bash 3.2（macOS 同梱の `/bin/bash`）で動作
 
-#### 確認が求められる操作
+## Permissions
 
-`allow`/`deny` に含まれない操作は実行前に確認が表示されます。例：
-- `git push`（通常のプッシュ）
-- `npm install`
-- その他の未定義コマンド
+`defaultMode: "auto"` で運用しているため、`allow` は auto mode が自動承認しない
+書き込み系コマンド（git 変更操作 / gh / パッケージマネージャ）のみを列挙している。
+読み取り系コマンドや `Read` `Edit` などのツール名は auto mode がカバーするため列挙しない。
 
-### Enabled Plugins
+`deny` は機密ファイルの読み取りと破壊的コマンドを禁止する安全弁。
 
-- `example-skills@anthropic-agent-skills`
-- `document-skills@anthropic-agent-skills`
-- `frontend-design@claude-plugins-official`
-- `github@claude-plugins-official`
-
-## 設定変更時
+## 同期
 
 ```bash
-cd ~/.claude
-git add settings.json
-git commit -m "Update settings"
-git push
-```
-
-## 他デバイスへの同期
-
-```bash
-cd ~/.claude
-git pull
+cd ~/.claude && git pull       # 取得
+cd ~/.claude && git add -A && git commit && git push   # 反映
 ```
