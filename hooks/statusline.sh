@@ -4,12 +4,14 @@
 #   📁 ~/.claude  🌿 main +23 ~5
 #   🤖 Opus 5 (1M context) · high · think · 💰$7.33
 #   🧠 context ███▎░░░░░░░░░░░░  21%  792k left
+#   💾 cache   ▉░░░░░░░░░░░░░░░   6%  1h ↻47m  miss 1: tools_changed
 #   ⏳ 5-hour  █████▌░░░░░░░░░░  35%  ↻2h28m  08/26 14:20 JST
 #   📅 weekly  ▊░░░░░░░░░░░░░░░   5%  ↻4d18h  08/31 06:00 JST
 #
 # Two header rows plus one row per budget. Every row reads the same way: the bar and
 # percent are what has been SPENT, the dim tail is what is LEFT — tokens for the
-# context window; for a limit, the countdown and the wall-clock reset time.
+# context window; the uncached share and time on the warm prefix for the prompt
+# cache; for a limit, the countdown and the wall-clock reset time.
 #
 # Stacked rather than packed onto one line so nothing wraps: a single-line
 # layout ran 82 columns and the trailing gauge broke apart on an 80-column
@@ -62,6 +64,15 @@ PARTIAL=('' '▏' '▎' '▍' '▌' '▋' '▊' '▉')
   read -r D7_RESET
   read -r COST
   read -r SESSION_ID
+  read -r PC_PRESENT
+  read -r PC_OBSERVED
+  read -r PC_WARM
+  read -r PC_TTL
+  read -r PC_EXPIRES
+  read -r PC_UNCACHED
+  read -r PC_MISSES
+  read -r PC_CAUSE
+  read -r PC_RECACHE
 } < <(printf '%s' "$input" | jq -r '
   def opt: if . == null then "" else (floor|tostring) end;
   [ (.model.display_name // "")
@@ -78,6 +89,15 @@ PARTIAL=('' '▏' '▎' '▍' '▌' '▋' '▊' '▉')
   , (.rate_limits.seven_day.resets_at        | opt)
   , ((.cost.total_cost_usd // 0) | if . >= 0.01 then (. * 100 | round / 100 | tostring) else "" end)
   , (.session_id // "")
+  , (if .prompt_cache == null then "" else "1" end)
+  , ((.prompt_cache.caching_observed // false) | tostring)
+  , ((.prompt_cache.warm // false) | tostring)
+  , (.prompt_cache.ttl // "")
+  , (.prompt_cache.expires_at | opt)
+  , (if .prompt_cache.hit_ratio == null then "" else ((1 - .prompt_cache.hit_ratio) * 100 | floor | tostring) end)
+  , ((.prompt_cache.misses // 0) | tostring)
+  , (.prompt_cache.last_miss_cause.causes[0]? // "")
+  , (.prompt_cache.recache_tokens_if_cold | opt)
   ] | .[]' 2>/dev/null)
 
 # ── helpers ─────────────────────────────────────────────────────────────────
@@ -229,6 +249,38 @@ if [ "${CTX_SIZE:-0}" -gt 0 ]; then
   ctx_left="$(fmt_tokens "$left") left"
 fi
 row '🧠' 'context' "$CYAN" "${CTX_PCT:-0}" "$ctx_left"
+
+# Prompt cache. Claude Code caches automatically; nothing here turns it on, the
+# row only says whether it is working. The gauge is the UNCACHED share of input
+# — what you are paying full price for — so it reads like every other row: the
+# bar is what was spent, and a rising bar is money. The tail carries the two
+# things you can act on: how long the warm prefix has left, and what broke it
+# last. `misses` counts prefixes that shrank with no compaction to explain it,
+# so a cause like `tools_changed` or `model_changed` names the culprit directly.
+# Magenta, not blue: it sits above the blue 5-hour row and adjacent rows must
+# stay tellable apart. The whole `prompt_cache` object is absent until the first
+# API response, and on providers that never report cache tokens.
+if [ -n "$PC_PRESENT" ]; then
+  if [ "$PC_OBSERVED" != true ]; then
+    # No response ever reported cache tokens: caching is off, or something in
+    # front of the API is stripping the markers. That is not a percentage.
+    printf '💾 %s%-*s%s %snot caching%s\n' \
+      "$DIM" "$LABEL_W" 'cache' "$RESET" "$YELLOW" "$RESET"
+  elif [ -n "$PC_UNCACHED" ]; then
+    pc_tail="$PC_TTL"
+    if [ "$PC_WARM" = true ] && [ -n "$PC_EXPIRES" ]; then
+      pc_tail="${pc_tail:+$pc_tail }↻$(fmt_dur $((PC_EXPIRES - $(date +%s))))"
+    else
+      pc_tail="${pc_tail:+$pc_tail }cold"
+      [ "${PC_RECACHE:-0}" -gt 0 ] && pc_tail="$pc_tail $(fmt_tokens "$PC_RECACHE") to rewarm"
+    fi
+    if [ "${PC_MISSES:-0}" -gt 0 ]; then
+      pc_tail="${pc_tail:+$pc_tail  }miss ${PC_MISSES}"
+      [ -n "$PC_CAUSE" ] && pc_tail="$pc_tail: ${PC_CAUSE}"
+    fi
+    row '💾' 'cache' "$MAGENTA" "$PC_UNCACHED" "$pc_tail"
+  fi
+fi
 
 [ -n "$H5_PCT" ] && row '⏳' '5-hour' "$BLUE"    "$H5_PCT" "$(reset_at "$H5_RESET")"
 [ -n "$D7_PCT" ] && row '📅' 'weekly' "$MAGENTA" "$D7_PCT" "$(reset_at "$D7_RESET")"
